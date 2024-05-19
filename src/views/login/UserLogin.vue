@@ -112,48 +112,41 @@ export default {
               uname: _this.ruleForm.uname,
               password: _this.ruleForm.password,
             },
-          })
-            .then((res) => {
-              // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
-              if (res.data.code === "0") {
-                // 当响应的编码为 0 时，说明登录成功
-                // 将用户信息存储到sessionStorage中
-                sessionStorage.setItem(
-                  "userInfo",
-                  JSON.stringify(res.data.data)
-                );
+          }).then((res) => {
+            // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
+            if (res.data.code === "0") {
+              // 当响应的编码为 0 时，说明登录成功
+              // 将用户信息存储到sessionStorage中
+              sessionStorage.setItem("userInfo", JSON.stringify(res.data.data));
 
-                if (role === "admin") {
-                  this.$router.push("/admin");
-                } else {
-                  this.$router.push("/user");
-                }
-
-                // 显示后端响应的成功信息
-                this.$message({
-                  message: res.data.msg,
-                  type: "success",
-                });
+              const role = res.data.data.role;
+              console.log(`role: ${role}`);
+              if (role === "admin") {
+                this.$router.push("/admin");
               } else {
-                // 当响应的编码不为 0 时，说明登录失败
-                // 显示后端响应的失败信息
-                this.$message({
-                  message: res.data.msg,
-                  type: "warning",
-                });
+                this.$router.push("/user");
               }
-              // 不管响应成功还是失败，收到后端响应的消息后就不再让登录按钮显示加载动画了
-              _this.loading = false;
-              console.log(res);
-            })
-            .catch((error) => {
+
+              // 显示后端响应的成功信息
               this.$message({
-                message: "登录失败，请稍后重试",
-                type: "error",
+                message: res.data.msg,
+                type: "success",
               });
-              this.loading = false;
-            });
+            } else {
+              // 当响应的编码不为 0 时，说明登录失败
+              // 显示后端响应的失败信息
+              this.$message({
+                message: res.data.msg,
+                type: "warning",
+              });
+            }
+            // 不管响应成功还是失败，收到后端响应的消息后就不再让登录按钮显示加载动画了
+            _this.loading = false;
+            console.log(res);
+          });
         } else {
+          // 如果账号或密码有一个没填，就直接提示必填，不向后端请求
+          console.log("error submit!!");
           this.loading = false;
           return false;
         }
