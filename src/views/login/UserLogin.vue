@@ -19,11 +19,17 @@
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input
-            type="password"
+            :type="passwordType"
             v-model="ruleForm.password"
             placeholder="请输入5-16位密码"
             autocomplete="off"
-          ></el-input>
+          >
+            <template slot="append">
+              <el-button @click="togglePasswordVisibility" class="icon-style">
+                <i :class="passwordIcon"></i>
+              </el-button>
+            </template>
+          </el-input>
         </el-form-item>
       </el-form>
       <div class="btnGroup">
@@ -71,9 +77,20 @@ export default {
         ],
       },
       loading: false, // 是否显示加载动画
+      passwordType: "password",
+      passwordIcon: "el-icon-view",
     };
   },
   methods: {
+    togglePasswordVisibility() {
+      if (this.passwordType === "password") {
+        this.passwordType = "text";
+        this.passwordIcon = "el-icon-minus";
+      } else {
+        this.passwordType = "password";
+        this.passwordIcon = "el-icon-view";
+      }
+    },
     submitForm(formName) {
       // 验证表单中的账号密码是否有效，因为在上面rules中定义为了必填 required: true
       this.$refs[formName].validate((valid) => {
@@ -85,7 +102,7 @@ export default {
           // 使用 axios 将登录信息发送到后端
           this.axios({
             url: "/api/user/login", // 请求地址
-            method: "get", // 请求方法
+            method: "post", // 请求方法
             headers: {
               // 请求头
               "Content-Type": "application/json",
@@ -95,34 +112,48 @@ export default {
               uname: _this.ruleForm.uname,
               password: _this.ruleForm.password,
             },
-          }).then((res) => {
-            // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
-            if (res.data.code === "0") {
-              // 当响应的编码为 0 时，说明登录成功
-              // 将用户信息存储到sessionStorage中
-              sessionStorage.setItem("userInfo", JSON.stringify(res.data.data));
-              // 跳转页面到首页
-              this.$router.push("/home");
-              // 显示后端响应的成功信息
+          })
+            .then((res) => {
+              // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
+              if (res.data.code === "0") {
+                // 当响应的编码为 0 时，说明登录成功
+                // 将用户信息存储到sessionStorage中
+                sessionStorage.setItem(
+                  "userInfo",
+                  JSON.stringify(res.data.data)
+                );
+
+                if (role === "admin") {
+                  this.$router.push("/admin");
+                } else {
+                  this.$router.push("/user");
+                }
+
+                // 显示后端响应的成功信息
+                this.$message({
+                  message: res.data.msg,
+                  type: "success",
+                });
+              } else {
+                // 当响应的编码不为 0 时，说明登录失败
+                // 显示后端响应的失败信息
+                this.$message({
+                  message: res.data.msg,
+                  type: "warning",
+                });
+              }
+              // 不管响应成功还是失败，收到后端响应的消息后就不再让登录按钮显示加载动画了
+              _this.loading = false;
+              console.log(res);
+            })
+            .catch((error) => {
               this.$message({
-                message: res.data.msg,
-                type: "success",
+                message: "登录失败，请稍后重试",
+                type: "error",
               });
-            } else {
-              // 当响应的编码不为 0 时，说明登录失败
-              // 显示后端响应的失败信息
-              this.$message({
-                message: res.data.msg,
-                type: "warning",
-              });
-            }
-            // 不管响应成功还是失败，收到后端响应的消息后就不再让登录按钮显示加载动画了
-            _this.loading = false;
-            console.log(res);
-          });
+              this.loading = false;
+            });
         } else {
-          // 如果账号或密码有一个没填，就直接提示必填，不向后端请求
-          console.log("error submit!!");
           this.loading = false;
           return false;
         }
@@ -136,6 +167,12 @@ export default {
 </script>
 
 <style scoped>
+.icon-style {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
 /* 设置登录面板居中，宽度为400px */
 .box-card {
   margin: auto auto;

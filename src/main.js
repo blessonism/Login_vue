@@ -6,6 +6,7 @@ import VueRouter from "vue-router";
 import router from "./router";
 import axios from "axios";
 import VueAxios from "vue-axios";
+import "@fortawesome/fontawesome-free/css/all.css";
 
 // 关闭 Vue 的生产提示
 Vue.config.productionTip = false;

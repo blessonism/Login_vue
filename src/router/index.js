@@ -6,6 +6,8 @@ import VueRouter from "vue-router";
 import Login from "../views/login/UserLogin";
 import Register from "../views/register/UserRegister";
 import Home from "../views/home/HomeIndex.vue";
+import UserPage from "../views/page/UserPage.vue";
+import AdminPage from "../views/page/AdminPage.vue";
 import { Message } from "element-ui";
 
 // 创建并暴露一个路由器
@@ -27,6 +29,14 @@ const router = new VueRouter({
     {
       path: "/home", // 路径
       component: Home, // 跳转到的组件
+    },
+    {
+      path: "/user", // 路径
+      component: UserPage, // 跳转到的组件
+    },
+    {
+      path: "/admin", // 路径
+      component: AdminPage, // 跳转到的组件
     },
   ],
 });
