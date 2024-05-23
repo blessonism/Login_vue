@@ -7,29 +7,14 @@
 
 <script>
 export default {
-  data() {
-    return {
-      user: {
-        uname: "",
-        uid: null,
-      },
-    };
-  },
   methods: {
     logout() {
-      // 移除本地用户登录信息
-      sessionStorage.removeItem("userInfo");
-      // 跳转页面到登录页
-      this.$router.push("/login");
+      // 调用 Vuex 的 logout action 清除用户信息
+      this.$store.dispatch("logout").then(() => {
+        // 跳转页面到登录页
+        this.$router.push("/login");
+      });
     },
-  },
-  mounted() {
-    if (sessionStorage.getItem("userInfo")) {
-      // 将用户信息存储到sessionStorage中
-      this.user = JSON.parse(sessionStorage.getItem("userInfo"));
-    }
   },
 };
 </script>
-
-<style scoped></style>

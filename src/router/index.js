@@ -49,15 +49,30 @@ const router = new VueRouter({
   ],
 });
 
+const roleHierarchy = {
+  ADMIN: 3,
+  USER: 1,
+};
+
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!sessionStorage.getItem("userInfo");
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const role = to.meta.role;
-  let user = store.state.user.userInfo;
+  // let user = store.state.user.userInfo;
+  let user = store.state.user;
+  // const user = store.state.user; // 直接引用 store.state.user
 
+  // 这行代码将 store.state.user.userInfo 的值赋给 user 变量，意味着 user 变量只是 userInfo 对象的一个副本，而不是对 store.state.user 的引用。
+  // const user = store.state.user
+  // 这行代码将 store.state.user 对象赋给 user 变量，使得 user 变量直接引用 store.state.user 对象本身。这意味着在后续代码中对 user 的任何修改都会直接影响到 store.state.user。
+  // 由于 Vuex 是响应式的，当你直接引用 store.state.user 并修改其中的 userInfo 属性时，Vue 会自动追踪这些变化并更新视图。而当你只复制 userInfo 对象时，Vue 并不会追踪对这个副本的修改。
+
+  // 从 sessionStorage 中获取用户信息并更新 Vuex
   if (!user && isAuthenticated) {
     user = JSON.parse(sessionStorage.getItem("userInfo"));
-    store.commit("setUser", user);
+    if (user) {
+      store.commit("setUser", user);
+    }
   }
 
   if (to.path === "/login" || to.path === "/register") {
@@ -74,7 +89,6 @@ router.beforeEach((to, from, next) => {
     }
     return;
   }
-
   if (requiresAuth) {
     if (!isAuthenticated || !user) {
       next({ path: "/login" });
@@ -82,7 +96,10 @@ router.beforeEach((to, from, next) => {
         message: "请先登录！",
         type: "warning",
       });
-    } else if (role && user.role !== role) {
+    } else if (
+      to.meta.role &&
+      roleHierarchy[user.role] < roleHierarchy[to.meta.role]
+    ) {
       next("/unauthorized");
       Message({
         message: "没有权限访问该页面！",
