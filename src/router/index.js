@@ -4,10 +4,12 @@ import VueRouter from "vue-router";
 
 // 引入组件
 import Login from "../views/login/UserLogin";
+import store from "../store"; // Vuex store
 import Register from "../views/register/UserRegister";
 import Home from "../views/home/HomeIndex.vue";
 import UserPage from "../views/page/UserPage.vue";
 import AdminPage from "../views/page/AdminPage.vue";
+import UnauthorizedPage from "../views/page/UnauthorizedPage.vue";
 import { Message } from "element-ui";
 
 // 创建并暴露一个路由器
@@ -33,25 +35,65 @@ const router = new VueRouter({
     {
       path: "/user", // 路径
       component: UserPage, // 跳转到的组件
+      meta: { requiresAuth: true, role: "USER" },
     },
     {
       path: "/admin", // 路径
       component: AdminPage, // 跳转到的组件
+      meta: { requiresAuth: true, role: "ADMIN" },
+    },
+    {
+      path: "/unauthorized",
+      component: UnauthorizedPage,
     },
   ],
 });
 
-// 导航守卫，前置处理
 router.beforeEach((to, from, next) => {
-  let isAuthenticated = !!sessionStorage.getItem("userInfo");
-  // 如果路由要跳转到除了登录和注册的界面的话就判断是否已经登录，如果没有登录就强制跳到登录界面
-  if (to.path !== "/login" && to.path !== "/register" && !isAuthenticated) {
-    next({ path: "/login" });
-    Message({
-      message: "请先登录！",
-      type: "warning",
-    });
-  } else next();
+  const isAuthenticated = !!sessionStorage.getItem("userInfo");
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const role = to.meta.role;
+  let user = store.state.user.userInfo;
+
+  if (!user && isAuthenticated) {
+    user = JSON.parse(sessionStorage.getItem("userInfo"));
+    store.commit("setUser", user);
+  }
+
+  if (to.path === "/login" || to.path === "/register") {
+    if (isAuthenticated) {
+      if (user.role === "ADMIN") {
+        next("/admin");
+      } else if (user.role === "USER") {
+        next("/user");
+      } else {
+        next();
+      }
+    } else {
+      next();
+    }
+    return;
+  }
+
+  if (requiresAuth) {
+    if (!isAuthenticated || !user) {
+      next({ path: "/login" });
+      Message({
+        message: "请先登录！",
+        type: "warning",
+      });
+    } else if (role && user.role !== role) {
+      next("/unauthorized");
+      Message({
+        message: "没有权限访问该页面！",
+        type: "error",
+      });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

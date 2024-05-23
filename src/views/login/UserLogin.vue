@@ -121,7 +121,7 @@ export default {
 
               const role = res.data.data.role;
               console.log(`role: ${role}`);
-              if (role === "admin") {
+              if (role === "ADMIN") {
                 this.$router.push("/admin");
               } else {
                 this.$router.push("/user");

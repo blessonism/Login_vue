@@ -1,15 +1,20 @@
-<!-- frontend/src/views/UserPage.vue -->
 <template>
   <div>
-    <h1>User Page</h1>
-    <p>Welcome, User!</p>
+    <h2>没有权限访问该页面！</h2>
     <el-button @click="logout"> 登出 </el-button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "UserPage",
+  data() {
+    return {
+      user: {
+        uname: "",
+        uid: null,
+      },
+    };
+  },
   methods: {
     logout() {
       // 移除本地用户登录信息
@@ -26,3 +31,5 @@ export default {
   },
 };
 </script>
+
+<style scoped></style>
