@@ -1,50 +1,74 @@
 <template>
-  <div>
-    <el-card class="box-card">
-      <h2>登录</h2>
-      <el-form
-        :model="ruleForm"
-        status-icon
-        :rules="rules"
+  <div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+      <h2 class="text-2xl font-bold mb-6">登录</h2>
+      <form
         ref="ruleForm"
-        label-position="left"
-        label-width="70px"
-        class="login-from"
+        @submit.prevent="submitForm('ruleForm')"
+        class="space-y-6"
       >
-        <el-form-item label="用户名" prop="uname">
-          <el-input
+        <div class="mb-4">
+          <label for="uname" class="block text-gray-700 mb-2">用户名</label>
+          <input
+            type="text"
             v-model="ruleForm.uname"
+            id="uname"
             placeholder="请输入2-10位用户名"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input
-            :type="passwordType"
-            v-model="ruleForm.password"
-            placeholder="请输入5-16位密码"
-            autocomplete="off"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+          />
+          <span v-if="errors.uname" class="text-red-500 text-sm mt-1">
+            {{ errors.uname }}
+          </span>
+        </div>
+        <div class="mb-6">
+          <label for="password" class="block text-gray-700 mb-2">密码</label>
+          <div class="relative">
+            <input
+              :type="passwordType"
+              v-model="ruleForm.password"
+              id="password"
+              placeholder="请输入5-16位密码"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+            <button
+              type="button"
+              @click="togglePasswordVisibility"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
+            >
+              <i :class="passwordIcon"></i>
+            </button>
+          </div>
+          <span v-if="errors.password" class="text-red-500 text-sm mt-1">
+            {{ errors.password }}
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300"
+            :class="{ 'opacity-50 cursor-not-allowed': loading }"
+            :disabled="loading"
           >
-            <template slot="append">
-              <el-button @click="togglePasswordVisibility" class="icon-style">
-                <i :class="passwordIcon"></i>
-              </el-button>
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-form>
-      <div class="btnGroup">
-        <el-button
-          type="primary"
-          @click="submitForm('ruleForm')"
-          v-loading="loading"
-          >登录</el-button
-        >
-        <el-button @click="resetForm('ruleForm')">重置</el-button>
-        <router-link to="/register">
-          <el-button style="margin-left: 10px">注册</el-button>
-        </router-link>
-      </div>
-    </el-card>
+            登录
+          </button>
+          <button
+            type="button"
+            @click="resetForm('ruleForm')"
+            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring focus:border-gray-300"
+          >
+            重置
+          </button>
+          <router-link to="/register">
+            <button
+              type="button"
+              class="ml-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:border-green-300"
+            >
+              注册
+            </button>
+          </router-link>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -56,27 +80,11 @@ export default {
         uname: "",
         password: "",
       },
-      rules: {
-        uname: [
-          { required: true, message: "用户名不能为空！", trigger: "blur" },
-          {
-            min: 2,
-            max: 10,
-            message: "用户名长度必须在2到10个字符之间",
-            trigger: "blur",
-          },
-        ],
-        password: [
-          { required: true, message: "密码不能为空！", trigger: "blur" },
-          {
-            min: 5,
-            max: 16,
-            message: "密码长度必须在5到16个字符之间",
-            trigger: "blur",
-          },
-        ],
+      errors: {
+        uname: null,
+        password: null,
       },
-      loading: false, // 是否显示加载动画
+      loading: false,
       passwordType: "password",
       passwordIcon: "el-icon-view",
     };
@@ -92,68 +100,64 @@ export default {
       }
     },
     submitForm(formName) {
-      // 验证表单中的账号密码是否有效，因为在上面rules中定义为了必填 required: true
-      this.$refs[formName].validate((valid) => {
-        // 点击登录后，让登录按钮开始转圈圈（展示加载动画）
-        this.loading = true;
-        // 如果经过校验，账号密码都不为空，则发送请求到后端登录接口
-        if (valid) {
-          let _this = this;
-          // 使用 axios 将登录信息发送到后端
-          this.axios({
-            url: "/api/user/login", // 请求地址
-            method: "post", // 请求方法
-            headers: {
-              // 请求头
-              "Content-Type": "application/json",
-            },
-            params: {
-              // 请求参数
-              uname: _this.ruleForm.uname,
-              password: _this.ruleForm.password,
-            },
-          }).then((res) => {
-            // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
-            if (res.data.code === "0") {
-              // 当响应的编码为 0 时，说明登录成功
-              // 将用户信息存储到sessionStorage中
-              sessionStorage.setItem("userInfo", JSON.stringify(res.data.data));
-
-              const role = res.data.data.role;
-              console.log(`role: ${role}`);
-              if (role === "ADMIN") {
-                this.$router.push("/admin");
-              } else {
-                this.$router.push("/user");
-              }
-
-              // 显示后端响应的成功信息
-              this.$message({
-                message: res.data.msg,
-                type: "success",
-              });
-            } else {
-              // 当响应的编码不为 0 时，说明登录失败
-              // 显示后端响应的失败信息
-              this.$message({
-                message: res.data.msg,
-                type: "warning",
-              });
-            }
-            // 不管响应成功还是失败，收到后端响应的消息后就不再让登录按钮显示加载动画了
-            _this.loading = false;
-            console.log(res);
+      this.loading = true;
+      this.errors.uname = null;
+      this.errors.password = null;
+      if (
+        !this.ruleForm.uname ||
+        this.ruleForm.uname.length < 2 ||
+        this.ruleForm.uname.length > 10
+      ) {
+        this.errors.uname = "用户名长度必须在2到10个字符之间";
+      }
+      if (
+        !this.ruleForm.password ||
+        this.ruleForm.password.length < 5 ||
+        this.ruleForm.password.length > 16
+      ) {
+        this.errors.password = "密码长度必须在5到16个字符之间";
+      }
+      if (this.errors.uname || this.errors.password) {
+        this.loading = false;
+        return;
+      }
+      this.axios({
+        url: "/api/user/login",
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        params: {
+          uname: this.ruleForm.uname,
+          password: this.ruleForm.password,
+        },
+      }).then((res) => {
+        if (res.data.code === "0") {
+          sessionStorage.setItem("userInfo", JSON.stringify(res.data.data));
+          const role = res.data.data.role;
+          if (role === "ADMIN") {
+            this.$router.push("/admin");
+          } else {
+            this.$router.push("/user");
+          }
+          this.$message({
+            message: res.data.msg,
+            type: "success",
           });
         } else {
-          // 如果账号或密码有一个没填，就直接提示必填，不向后端请求
-          console.log("error submit!!");
-          this.loading = false;
-          return false;
+          this.$message({
+            message: res.data.msg,
+            type: "warning",
+          });
         }
+        this.loading = false;
       });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm.uname = "";
+      this.ruleForm.password = "";
+      this.errors.uname = null;
+      this.errors.password = null;
     },
   },
 };
@@ -162,17 +166,7 @@ export default {
 <style scoped>
 .icon-style {
   padding: 0;
-  border: none;
   background: none;
-  cursor: pointer;
-}
-/* 设置登录面板居中，宽度为400px */
-.box-card {
-  margin: auto auto;
-  width: 400px;
-}
-/* 设置登录面板中的表单居中 */
-.login-from {
-  margin: auto auto;
+  border: none;
 }
 </style>

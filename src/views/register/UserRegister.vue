@@ -1,164 +1,159 @@
 <template>
-  <div>
-    <el-card class="box-card">
-      <h2>注册</h2>
-      <el-form
-        :model="ruleForm"
-        status-icon
-        :rules="rules"
-        ref="ruleForm"
-        label-position="left"
-        label-width="80px"
-        class="demo-ruleForm"
-      >
-        <el-form-item label="用户名" prop="uname">
-          <el-input
+  <div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+      <h2 class="text-2xl font-bold mb-6">注册</h2>
+      <form @submit.prevent="submitForm" class="space-y-6">
+        <div>
+          <label for="uname" class="block text-gray-700 mb-2">用户名</label>
+          <input
+            type="text"
             v-model="ruleForm.uname"
+            id="uname"
             placeholder="请输入2-10位用户名"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="pass">
-          <el-input
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+          />
+          <span v-if="errors.uname" class="text-red-500 text-sm mt-1">{{
+            errors.uname
+          }}</span>
+        </div>
+        <div>
+          <label for="pass" class="block text-gray-700 mb-2">密码</label>
+          <input
             type="password"
             v-model="ruleForm.pass"
+            id="pass"
             placeholder="请输入5-16位密码"
             autocomplete="off"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="确认密码" prop="password">
-          <el-input
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+          />
+          <span v-if="errors.pass" class="text-red-500 text-sm mt-1">{{
+            errors.pass
+          }}</span>
+        </div>
+        <div>
+          <label for="password" class="block text-gray-700 mb-2"
+            >确认密码</label
+          >
+          <input
             type="password"
             v-model="ruleForm.password"
+            id="password"
+            placeholder="请再次输入密码"
             autocomplete="off"
-          ></el-input>
-        </el-form-item>
-      </el-form>
-      <div class="btnGroup">
-        <el-button
-          type="primary"
-          @click="submitForm('ruleForm')"
-          v-loading="loading"
-          >提交</el-button
-        >
-        <el-button @click="resetForm('ruleForm')">重置</el-button>
-        <el-button @click="goBack">返回</el-button>
-      </div>
-    </el-card>
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+          />
+          <span v-if="errors.password" class="text-red-500 text-sm mt-1">{{
+            errors.password
+          }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300"
+            :class="{ 'opacity-50 cursor-not-allowed': loading }"
+            :disabled="loading"
+          >
+            提交
+          </button>
+          <button
+            type="button"
+            @click="resetForm"
+            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring focus:border-gray-300"
+          >
+            重置
+          </button>
+          <button
+            type="button"
+            @click="goBack"
+            class="ml-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring focus:border-green-300"
+          >
+            返回
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
-
 <script>
+import axios from "axios";
+
 export default {
   data() {
-    var validatePass = (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error("请输入密码"));
-      } else {
-        if (this.ruleForm.checkPass !== "") {
-          this.$refs.ruleForm.validateField("checkPass");
-        }
-        callback();
-      }
-    };
-    var validatePass2 = (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error("请再次输入密码"));
-      } else if (value !== this.ruleForm.pass) {
-        callback(new Error("两次输入密码不一致!"));
-      } else {
-        callback();
-      }
-    };
     return {
       ruleForm: {
         uname: "",
         pass: "",
         password: "",
       },
-      rules: {
-        uname: [
-          { required: true, message: "用户名不能为空！", trigger: "blur" },
-          {
-            min: 2,
-            max: 10,
-            message: "用户名长度必须在2到10个字符之间",
-            trigger: "blur",
-          },
-        ],
-        pass: [
-          { required: true, validator: validatePass, trigger: "blur" },
-          {
-            min: 5,
-            max: 16,
-            message: "密码长度必须在5到16个字符之间",
-            trigger: "blur",
-          },
-        ],
-        password: [
-          { required: true, validator: validatePass2, trigger: "blur" },
-          {
-            min: 5,
-            max: 16,
-            message: "密码长度必须在5到16个字符之间",
-            trigger: "blur",
-          },
-        ],
+      errors: {
+        uname: null,
+        pass: null,
+        password: null,
       },
       loading: false,
     };
   },
   methods: {
-    submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
-        this.loading = true; // 提交按钮显示加载动画
-        if (valid) {
-          let _this = this;
-          this.axios({
-            // axios 向后端发起请求
-            url: "/api/user/register", // 请求地址
-            method: "post", // 请求方法
-            headers: {
-              // 请求头
-              "Content-Type": "application/json",
-            },
-            data: {
-              // 请求参数，为 data，与登录的 params 不太一样
-              uname: _this.ruleForm.uname,
-              password: _this.ruleForm.password,
-            },
-          }).then((res) => {
-            // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
+    validate() {
+      this.errors.uname = null;
+      this.errors.pass = null;
+      this.errors.password = null;
+
+      if (
+        !this.ruleForm.uname ||
+        this.ruleForm.uname.length < 2 ||
+        this.ruleForm.uname.length > 10
+      ) {
+        this.errors.uname = "用户名长度必须在2到10个字符之间";
+      }
+      if (
+        !this.ruleForm.pass ||
+        this.ruleForm.pass.length < 5 ||
+        this.ruleForm.pass.length > 16
+      ) {
+        this.errors.pass = "密码长度必须在5到16个字符之间";
+      }
+      if (this.ruleForm.pass !== this.ruleForm.password) {
+        this.errors.password = "两次输入密码不一致!";
+      }
+
+      return !this.errors.uname && !this.errors.pass && !this.errors.password;
+    },
+    submitForm() {
+      if (this.validate()) {
+        this.loading = true;
+        axios
+          .post("/api/user/register", {
+            uname: this.ruleForm.uname,
+            password: this.ruleForm.password,
+          })
+          .then((res) => {
             if (res.data.code === "0") {
-              // 当响应的编码为 0 时，说明注册成功
-              // 显示后端响应的成功信息
               this.$message({
                 message: res.data.msg,
                 type: "success",
               });
-              // 注册成功后跳转到登录页面
               this.$router.push("/login");
             } else {
-              // 当响应的编码不为 0 时，说明注册失败
-              // 显示后端响应的失败信息
               this.$message({
                 message: res.data.msg,
                 type: "warning",
               });
             }
-            // 不管响应成功还是失败，收到后端响应的消息后就不再让登录按钮显示加载动画了
-            _this.loading = false;
-            console.log(res);
+            this.loading = false;
+          })
+          .catch(() => {
+            this.loading = false;
           });
-        } else {
-          // 如果账号或密码有一个没填，就直接提示必填，不向后端请求
-          console.log("error submit!!");
-          this.loading = false;
-          return false;
-        }
-      });
+      }
     },
-    resetForm(formName) {
-      this.$refs[formName].resetFields();
+    resetForm() {
+      this.ruleForm.uname = "";
+      this.ruleForm.pass = "";
+      this.ruleForm.password = "";
+      this.errors.uname = null;
+      this.errors.pass = null;
+      this.errors.password = null;
     },
     goBack() {
       this.$router.go(-1);

@@ -8,6 +8,7 @@ import axios from "axios";
 import store from "./store"; // 引入 Vuex
 import VueAxios from "vue-axios";
 import "@fortawesome/fontawesome-free/css/all.css";
+import "tailwindcss/tailwind.css";
 
 // 关闭 Vue 的生产提示
 Vue.config.productionTip = false;
