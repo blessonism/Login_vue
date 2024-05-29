@@ -4,6 +4,8 @@
     <h1>Admin Page</h1>
     <p>Welcome, Admin!</p>
     <el-button @click="logout"> 登出 </el-button>
+    <el-button @click="enterUser"> 进入user页面 </el-button>
+    <el-button @click="enterUserControl"> 进入用户管理页面 </el-button>
   </div>
 </template>
 
@@ -16,6 +18,14 @@ export default {
       sessionStorage.removeItem("userInfo");
       // 跳转页面到登录页
       this.$router.push("/login");
+    },
+
+    enterUser() {
+      this.$router.push("/user");
+    },
+
+    enterUserControl() {
+      this.$router.push("/admin/users");
     },
   },
   mounted() {

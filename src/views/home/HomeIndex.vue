@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>欢迎{{ user.uname }}！您的 uid 为{{ user.uid }}</h2>
+    <h2>欢迎{{ user.uname }}！您的 uid 为{{ user.id }}</h2>
     <el-button @click="logout"> 登出 </el-button>
   </div>
 </template>
@@ -11,7 +11,7 @@ export default {
     return {
       user: {
         uname: "",
-        uid: null,
+        id: null,
       },
     };
   },

@@ -10,6 +10,8 @@ import Home from "../views/home/HomeIndex.vue";
 import UserPage from "../views/page/UserPage.vue";
 import AdminPage from "../views/page/AdminPage.vue";
 import UnauthorizedPage from "../views/page/UnauthorizedPage.vue";
+import UserList from "@/components/UserList";
+import UserForm from "@/components/UserForm";
 import { Message } from "element-ui";
 
 // 创建并暴露一个路由器
@@ -45,6 +47,22 @@ const router = new VueRouter({
     {
       path: "/unauthorized",
       component: UnauthorizedPage,
+    },
+    {
+      path: "/admin/users",
+      name: "UserList",
+      component: UserList,
+    },
+    {
+      path: "/admin/user/new",
+      name: "UserForm",
+      component: UserForm,
+    },
+    {
+      path: "/admin/user/edit/:id",
+      name: "EditUser",
+      component: UserForm,
+      props: true,
     },
   ],
 });
